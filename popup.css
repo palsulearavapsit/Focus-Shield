@@ -1,0 +1,92 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", "Inter", sans-serif;
+  background: linear-gradient(135deg, #1e1e2f, #2a2a3b);
+  color: #fff;
+  width: 320px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  width: 90%;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  color: #ff4f4f;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+input[type="text"]::placeholder {
+  color: #ccc;
+}
+
+button {
+  background-color: #ff4f4f;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #ff2e2e;
+  transform: scale(1.05);
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+li {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 12px;
+  transition: 0.3s ease;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+li:hover {
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
