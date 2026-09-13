@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusShield</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <!-- MASTER PIN LOCK SCREEN GATEKEEPER -->
+  <div id="appLockScreen" class="app-lock-screen hidden">
+    <div class="lock-screen-content">
+      <div class="lock-shield-badge">
+        <span class="lock-skull-icon">💀</span>
+        <div class="lock-radar-pulse"></div>
+      </div>
+      <h2 class="lock-screen-title">FOCUSSHIELD LOCKED</h2>
+      <p class="lock-screen-subtitle">Enter your 4-digit PIN to access extension</p>
+
+      <div class="lock-pin-wrap">
+        <input type="password" id="gatekeeperPinInput" maxlength="4" placeholder="••••" autofocus inputmode="numeric" />
+      </div>
+      <div id="gatekeeperPinError" class="gatekeeper-error hidden">Incorrect PIN. Try again.</div>
+
+      <button id="gatekeeperUnlockBtn" class="btn-primary" style="width: 140px; margin: 10px auto 0;">
+        Unlock 🔓
+      </button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">🛡️</span>
+        <div class="brand-text">
+          <span class="brand-title">FocusShield</span>
+          <span class="brand-subtitle">Danger Zone Guard</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <div id="streakBadge" class="streak-badge" title="Daily Focus Streak">
+          <span class="streak-fire">🔥</span> <span id="streakCountText">1d</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hardcore Lock Active Alert Banner -->
+    <div id="hardcoreActiveBanner" class="hardcore-banner hidden">
+      <span class="lock-icon">🔒</span>
+      <div class="hardcore-banner-text">
+        <div class="hardcore-title">HARDCORE LOCK ACTIVE</div>
+        <div id="hardcoreCountdownBanner" class="hardcore-timer">00:00:00 remaining</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" data-tab="shieldTab" title="Shield & Custom Sites">
+        <span class="tab-icon">🛡️</span>
+        <span class="tab-label">Shield</span>
+      </button>
+      <button class="nav-btn" data-tab="categoriesTab" title="Category Presets">
+        <span class="tab-icon">🏷️</span>
+        <span class="tab-label">Categories</span>
+      </button>
+      <button class="nav-btn" data-tab="hardcoreTab" title="Irreversible Lock">
+        <span class="tab-icon">⚡</span>
+        <span class="tab-label">Hardcore</span>
+      </button>
+      <button class="nav-btn" data-tab="analyticsTab" title="Focus Analytics">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Stats</span>
+      </button>
+      <button class="nav-btn" data-tab="securityTab" title="PIN Passcode">
+        <span class="tab-icon">🔐</span>
+        <span class="tab-label">PIN</span>
+      </button>
+    </nav>
+
+    <!-- Tab Contents -->
+    <main class="tab-content-container">
+      <!-- 1. SHIELD TAB -->
+      <section id="shieldTab" class="tab-pane active">
+        <!-- One-Click Current Site Block Card -->
+        <div id="currentSiteCard" class="current-site-card">
+          <div class="site-header">
+            <span class="site-tag">CURRENT TAB</span>
+            <span id="currentDomainDisplay" class="current-domain">Detecting...</span>
+          </div>
+          <div id="currentSiteActionWrap">
+            <button id="blockCurrentSiteBtn" class="btn-block-current">
+              <span class="btn-icon">🚫</span> Block This Website
+            </button>
+            <div id="currentSiteBlockedBadge" class="already-blocked-badge hidden">
+              <span>✅ Already Shielded in Danger Zone</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Custom Website Card -->
+        <div class="glass-card add-site-card">
+          <div class="input-wrap">
+            <input type="text" id="urlInput" placeholder="Add domain (e.g. net77.cc)" spellcheck="false" />
+            <button id="addButton" class="btn-primary" title="Add to Blocklist">
+              <span>+ Add</span>
+            </button>
+          </div>
+          <div id="inputErrorMsg" class="error-msg hidden">Please enter a valid domain.</div>
+        </div>
+
+        <!-- Custom Blocklist Header -->
+        <div class="section-title-row">
+          <span class="section-title">Custom Blocklist</span>
+          <span id="customSiteCountBadge" class="count-pill">0</span>
+        </div>
+        <div class="blocklist-hint">💡 Double-click or click 🏷️ to move website into a category!</div>
+
+        <!-- Blocked List -->
+        <div class="list-container">
+          <ul id="blockList" class="custom-block-list"></ul>
+          <div id="emptyBlocklistState" class="empty-state">
+            <span class="empty-icon">✨</span>
+            <p>No custom sites added yet.</p>
+            <span class="empty-hint">Add websites above or toggle categories.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. CATEGORIES TAB -->
+      <section id="categoriesTab" class="tab-pane">
+        <div class="category-intro-row">
+          <span class="category-intro">Toggle shields, or expand to add/remove websites:</span>
+        </div>
+
+        <!-- Dynamic Category List -->
+        <div id="categoriesContainer" class="category-dynamic-list"></div>
+
+        <!-- Create New Category Button -->
+        <button id="openNewCategoryModalBtn" class="btn-create-category">
+          <span>+ Create Custom Category</span>
+        </button>
+      </section>
+
+      <!-- 3. HARDCORE LOCK TAB -->
+      <section id="hardcoreTab" class="tab-pane">
+        <!-- Inactive State -->
+        <div id="hardcoreInactiveView">
+          <div class="hardcore-warning-box">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-text">
+              <strong>IRREVERSIBLE HARDCORE LOCK</strong>
+              <p>Once activated, you <b>CANNOT</b> unblock sites or turn off category shields until the timer finishes!</p>
+            </div>
+          </div>
+
+          <div class="duration-select-label">Select Lock Duration:</div>
+          <div class="duration-grid">
+            <button class="duration-pill active" data-duration="30m">30 Mins</button>
+            <button class="duration-pill" data-duration="1h">1 Hour</button>
+            <button class="duration-pill" data-duration="2h">2 Hours</button>
+            <button class="duration-pill" data-duration="4h">4 Hours</button>
+            <button class="duration-pill" data-duration="midnight">Until Midnight</button>
+            <button class="duration-pill" data-duration="morning">Until 8 AM</button>
+          </div>
+
+          <button id="activateHardcoreBtn" class="btn-danger-lock">
+            <span class="btn-icon">🔒</span> ENGAGE HARDCORE LOCK
+          </button>
+        </div>
+
+        <!-- Active State -->
+        <div id="hardcoreActiveView" class="hidden">
+          <div class="hardcore-active-card">
+            <div class="skull-pulse-wrap">
+              <span class="locked-skull">💀</span>
+              <div class="lock-ring-pulse"></div>
+            </div>
+            <h3 class="lock-status-title">LOCKDOWN IN PROGRESS</h3>
+            <div id="hardcoreLiveTimer" class="live-lock-timer">00:00:00</div>
+            <p class="lock-status-desc">
+              All shields are armed in Danger Zone. Deleting sites and disabling categories is strictly prohibited.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ANALYTICS TAB -->
+      <section id="analyticsTab" class="tab-pane">
+        <div class="stats-overview-grid">
+          <div class="analytics-card">
+            <span class="analytics-icon">🛡️</span>
+            <span class="analytics-val" id="statsTodayVal">0</span>
+            <span class="analytics-lbl">Blocked Today</span>
+          </div>
+          <div class="analytics-card">
+            <span class="analytics-icon">🔥</span>
+            <span class="analytics-val" id="statsStreakVal">1</span>
+            <span class="analytics-lbl">Day Streak</span>
+          </div>
+          <div class="analytics-card full-width">
+            <span class="analytics-icon">⚡</span>
+            <span class="analytics-val" id="statsTotalVal">0</span>
+            <span class="analytics-lbl">Total Distractions Shielded</span>
+          </div>
+        </div>
+
+        <div class="section-title-row" style="margin-top: 14px;">
+          <span class="section-title">Top Blocked Attempts</span>
+        </div>
+        <div id="topBlockedList" class="top-blocked-container"></div>
+      </section>
+
+      <!-- 5. SECURITY / PIN TAB -->
+      <section id="securityTab" class="tab-pane">
+        <div class="security-card">
+          <div class="security-status-row">
+            <div class="sec-left">
+              <span class="sec-icon">🔐</span>
+              <div>
+                <div class="sec-title">Passcode Protection</div>
+                <div id="pinStatusText" class="sec-status">No PIN set</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="setPinView" class="pin-form-view">
+            <p class="pin-hint">Set a 4-digit PIN. Once set, you will also need it to unlock the extension every time you open it.</p>
+            <div class="pin-inputs-wrap">
+              <input type="password" id="newPinInput" maxlength="4" placeholder="4-digit PIN" inputmode="numeric" />
+              <input type="password" id="confirmPinInput" maxlength="4" placeholder="Confirm PIN" inputmode="numeric" />
+            </div>
+            <button id="savePinBtn" class="btn-primary" style="width: 100%; margin-top: 10px;">
+              Set PIN Passcode
+            </button>
+          </div>
+
+          <div id="managePinView" class="pin-form-view hidden">
+            <p class="pin-hint">Passcode protection is active. Entering current PIN is required to change or remove.</p>
+            <div class="pin-inputs-wrap">
+              <input type="password" id="currentPinInput" maxlength="4" placeholder="Current PIN" inputmode="numeric" />
+            </div>
+            <div class="pin-btn-row">
+              <button id="removePinBtn" class="btn-danger-outline">Remove PIN</button>
+              <button id="changePinToggleBtn" class="btn-secondary">Change PIN</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 1-CLICK ASSIGN TO CATEGORY MODAL -->
+    <div id="assignCategoryModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-icon">🏷️</span>
+          <h3>Assign to Category</h3>
+        </div>
+        <p class="modal-desc">
+          Choose a category to move <b id="assignTargetSiteDomain" style="color: var(--amber);">site</b> into:
+        </p>
+
+        <div id="assignCategoryButtonsGrid" class="assign-category-grid"></div>
+
+        <div class="modal-btn-row" style="margin-top: 14px;">
+          <button id="cancelAssignCategoryBtn" class="btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Custom Category Modal -->
+    <div id="newCategoryModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-icon">🏷️</span>
+          <h3>Create Custom Category</h3>
+        </div>
+        <p class="modal-desc">Create your own category to bundle websites.</p>
+        
+        <div class="form-group">
+          <label class="form-label">Category Name</label>
+          <input type="text" id="newCategoryNameInput" placeholder="e.g. Movies, Music, Shopping" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Choose Icon</label>
+          <div id="emojiPickerGrid" class="emoji-picker-grid">
+            <button type="button" class="emoji-opt active" data-emoji="🍿">🍿</button>
+            <button type="button" class="emoji-opt" data-emoji="🎵">🎵</button>
+            <button type="button" class="emoji-opt" data-emoji="🎮">🎮</button>
+            <button type="button" class="emoji-opt" data-emoji="🛍️">🛍️</button>
+            <button type="button" class="emoji-opt" data-emoji="📰">📰</button>
+            <button type="button" class="emoji-opt" data-emoji="📚">📚</button>
+            <button type="button" class="emoji-opt" data-emoji="🛒">🛒</button>
+            <button type="button" class="emoji-opt" data-emoji="⚡">⚡</button>
+          </div>
+        </div>
+
+        <div id="newCategoryError" class="modal-error hidden">Please enter a category name.</div>
+
+        <div class="modal-btn-row">
+          <button id="cancelNewCategoryBtn" class="btn-secondary">Cancel</button>
+          <button id="saveNewCategoryBtn" class="btn-primary">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIN Prompt Verification Modal -->
+    <div id="pinModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-icon">🔒</span>
+          <h3>Enter 4-Digit Passcode</h3>
+        </div>
+        <p class="modal-desc">This action is protected by FocusShield.</p>
+        <div class="modal-pin-input">
+          <input type="password" id="modalPinInput" maxlength="4" placeholder="••••" autofocus inputmode="numeric" />
+        </div>
+        <div id="modalPinError" class="modal-error hidden">Incorrect PIN</div>
+        <div class="modal-btn-row">
+          <button id="cancelPinModalBtn" class="btn-secondary">Cancel</button>
+          <button id="confirmPinModalBtn" class="btn-primary">Unlock</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hardcore Confirmation Modal -->
+    <div id="hardcoreConfirmModal" class="modal-overlay hidden">
+      <div class="modal-card danger-modal">
+        <div class="modal-header">
+          <span class="modal-icon">💀</span>
+          <h3>Confirm Irreversible Lock</h3>
+        </div>
+        <p class="modal-desc">
+          Are you 100% sure you want to activate Hardcore Lock for <b id="confirmDurationText">30 minutes</b>?
+          <br><br>
+          <span style="color: #ff4f4f; font-weight: 700;">You cannot cancel or disable this until the timer ends.</span>
+        </p>
+        <div class="modal-btn-row">
+          <button id="cancelHardcoreModalBtn" class="btn-secondary">Cancel</button>
+          <button id="startHardcoreConfirmBtn" class="btn-danger-lock">Yes, Lock Me In!</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

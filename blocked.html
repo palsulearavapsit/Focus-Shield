@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚠️ DANGER ZONE | FocusShield</title>
+  <link rel="stylesheet" href="blocked.css" />
+</head>
+<body>
+  <div class="danger-overlay"></div>
+  <div class="hazard-stripe hazard-top"></div>
+
+  <main class="danger-card">
+    <div class="skull-badge">
+      <span class="skull-icon">💀</span>
+      <div class="radar-pulse"></div>
+    </div>
+
+    <div class="danger-tag">⚠️ ACCESS DENIED // RESTRICTED AREA</div>
+    
+    <h1 class="glitch-title">DANGER ZONE</h1>
+    
+    <p class="blocked-message">
+      You attempted to enter <span id="targetDomain" class="highlight-domain">distraction</span>!
+    </p>
+
+    <div class="quote-card">
+      <div class="quote-symbol">“</div>
+      <p id="motivationalQuote" class="quote-text">
+        Discipline is choosing between what you want now, and what you want most.
+      </p>
+      <div id="quoteAuthor" class="quote-author">— FocusShield Directive</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill">
+        <span class="stat-icon">🛡️</span>
+        <div class="stat-info">
+          <span class="stat-value" id="todayCount">0</span>
+          <span class="stat-label">Blocked Today</span>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-icon">🔥</span>
+        <div class="stat-info">
+          <span class="stat-value" id="streakCount">1 Day</span>
+          <span class="stat-label">Focus Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button id="closeTabBtn" class="btn-danger">
+        <span class="btn-icon">🛑</span> Return to Safety (Close Tab)
+      </button>
+      <button id="toggleBreathingBtn" class="btn-secondary">
+        <span class="btn-icon">🧘</span> 60s Dopamine Reset
+      </button>
+    </div>
+
+    <!-- Breathing Widget -->
+    <div id="breathingWidget" class="breathing-widget hidden">
+      <div class="breathing-circle-wrap">
+        <div id="breathingRing" class="breathing-ring"></div>
+        <div id="breathingGuideText" class="breathing-guide-text">Inhale...</div>
+      </div>
+      <p class="breathing-tip">Follow the circle. Reset your dopamine receptors before returning to deep work.</p>
+    </div>
+  </main>
+
+  <div class="hazard-stripe hazard-bottom"></div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>
