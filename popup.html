@@ -147,26 +147,21 @@
         <!-- Inactive State -->
         <div id="hardcoreInactiveView">
           <div class="hardcore-warning-box">
-            <span class="warning-icon">⚠️</span>
+            <span class="warning-icon">💀</span>
             <div class="warning-text">
-              <strong>IRREVERSIBLE HARDCORE LOCK</strong>
-              <p>Once activated, you <b>CANNOT</b> unblock sites or turn off category shields until the timer finishes!</p>
+              <strong>PERMANENT IRREVERSIBLE LOCK</strong>
+              <p>Once activated, this mode <b>NEVER EXPIRES</b> and can <b>NEVER BE UNBLOCKED</b>. All blocked websites and category shields will be locked permanently.</p>
             </div>
           </div>
 
-          <div class="duration-select-label">Select Lock Duration:</div>
-          <div class="duration-grid">
-            <button class="duration-pill active" data-duration="30m">30 Mins</button>
-            <button class="duration-pill" data-duration="1h">1 Hour</button>
-            <button class="duration-pill" data-duration="2h">2 Hours</button>
-            <button class="duration-pill" data-duration="4h">4 Hours</button>
-            <button class="duration-pill" data-duration="midnight">Until Midnight</button>
-            <button class="duration-pill" data-duration="morning">Until 8 AM</button>
-            <button class="duration-pill permanent-pill" data-duration="permanent" style="grid-column: span 2;">♾️ PERMANENT (Never Unblock)</button>
+          <div class="permanent-lock-feature-box">
+            <div class="perm-feature-item">🚫 <b>Zero Unblock Options</b>: Unblocking sites is strictly forbidden forever.</div>
+            <div class="perm-feature-item">🔒 <b>Permanent Categories</b>: Category shields can never be turned off.</div>
+            <div class="perm-feature-item">➕ <b>Add Sites Anytime</b>: You can still add more distracting websites to block them.</div>
           </div>
 
-          <button id="activateHardcoreBtn" class="btn-danger-lock">
-            <span class="btn-icon">🔒</span> ENGAGE HARDCORE LOCK
+          <button id="activateHardcoreBtn" class="btn-danger-lock" style="margin-top: 14px;">
+            <span class="btn-icon">🔒</span> ENGAGE PERMANENT HARDCORE LOCK
           </button>
         </div>
 
@@ -330,16 +325,16 @@
       <div class="modal-card danger-modal">
         <div class="modal-header">
           <span class="modal-icon">💀</span>
-          <h3>Confirm Irreversible Lock</h3>
+          <h3>Confirm Permanent Lock</h3>
         </div>
         <p class="modal-desc">
-          Are you 100% sure you want to activate Hardcore Lock for <b id="confirmDurationText">30 minutes</b>?
+          Are you 100% sure you want to activate <b style="color: #ff4f4f;">Permanent Hardcore Lock</b>?
           <br><br>
-          <span style="color: #ff4f4f; font-weight: 700;">You cannot cancel or disable this until the timer ends.</span>
+          <span style="color: #ff4f4f; font-weight: 700;">This lock NEVER expires and CANNOT be turned off. You will NEVER be able to unblock sites.</span>
         </p>
         <div class="modal-btn-row">
           <button id="cancelHardcoreModalBtn" class="btn-secondary">Cancel</button>
-          <button id="startHardcoreConfirmBtn" class="btn-danger-lock">Yes, Lock Me In!</button>
+          <button id="startHardcoreConfirmBtn" class="btn-danger-lock">Yes, Lock Permanently!</button>
         </div>
       </div>
     </div>

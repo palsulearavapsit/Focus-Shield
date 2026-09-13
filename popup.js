@@ -975,61 +975,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Hardcore Lock Duration Selector
-  durationPills.forEach((pill) => {
-    pill.addEventListener("click", () => {
-      durationPills.forEach((p) => p.classList.remove("active"));
-      pill.classList.add("active");
-      selectedDurationKey = pill.dataset.duration;
-    });
-  });
-
-  function getDurationMs(key) {
-    const now = new Date();
-    switch (key) {
-      case "30m":
-        return 30 * 60 * 1000;
-      case "1h":
-        return 60 * 60 * 1000;
-      case "2h":
-        return 2 * 60 * 60 * 1000;
-      case "4h":
-        return 4 * 60 * 60 * 1000;
-      case "midnight": {
-        const midnight = new Date(now);
-        midnight.setHours(23, 59, 59, 999);
-        return Math.max(60000, midnight.getTime() - now.getTime());
-      }
-      case "morning": {
-        const morning = new Date(now);
-        if (morning.getHours() >= 8) {
-          morning.setDate(morning.getDate() + 1);
-        }
-        morning.setHours(8, 0, 0, 0);
-        return Math.max(60000, morning.getTime() - now.getTime());
-      }
-      case "permanent":
-        return 100 * 365 * 24 * 60 * 60 * 1000; // 100 years
-      default:
-        return 30 * 60 * 1000;
-    }
-  }
-
-  function getDurationLabel(key) {
-    switch (key) {
-      case "30m": return "30 minutes";
-      case "1h": return "1 hour";
-      case "2h": return "2 hours";
-      case "4h": return "4 hours";
-      case "midnight": return "until Midnight tonight";
-      case "morning": return "until 8:00 AM tomorrow";
-      case "permanent": return "FOREVER (Permanent - Never Unblocks)";
-      default: return key;
-    }
-  }
-
+  // Hardcore Permanent Lock Activation
   activateHardcoreBtn.addEventListener("click", () => {
-    confirmDurationText.textContent = getDurationLabel(selectedDurationKey);
     hardcoreConfirmModal.classList.remove("hidden");
   });
 
@@ -1039,14 +986,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   startHardcoreConfirmBtn.addEventListener("click", async () => {
     hardcoreConfirmModal.classList.add("hidden");
-    const isPerm = selectedDurationKey === "permanent";
-    const durationMs = getDurationMs(selectedDurationKey);
-    const expiresAt = Date.now() + durationMs;
-
     state.hardcoreLock = {
       active: true,
-      isPermanent: isPerm,
-      expiresAt: expiresAt
+      isPermanent: true,
+      expiresAt: Date.now() + (100 * 365 * 24 * 60 * 60 * 1000)
     };
 
     await chrome.storage.local.set({ hardcoreLock: state.hardcoreLock });

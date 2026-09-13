@@ -980,49 +980,26 @@ input:checked + .slider:before {
   margin-bottom: 16px;
 }
 
-.duration-pill {
-  background: var(--bg-card);
+.permanent-lock-feature-box {
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border-glass);
-  color: #cbd5e1;
-  padding: 10px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  text-align: left;
 }
 
-.duration-pill:hover {
-  background: var(--bg-card-hover);
-  border-color: rgba(255, 255, 255, 0.2);
+.perm-feature-item {
+  font-size: 11px;
+  color: #e2e8f0;
+  line-height: 1.4;
 }
 
-.duration-pill.active {
-  background: rgba(255, 42, 75, 0.2);
-  border-color: var(--neon-red);
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 0 10px var(--neon-red-glow);
-}
-
-.duration-pill.permanent-pill {
-  border-color: rgba(255, 42, 75, 0.4);
-  background: rgba(255, 42, 75, 0.1);
+.perm-feature-item b {
   color: #ff8598;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-.duration-pill.permanent-pill:hover {
-  background: rgba(255, 42, 75, 0.2);
-  border-color: var(--neon-red);
-}
-
-.duration-pill.permanent-pill.active {
-  background: linear-gradient(135deg, rgba(255, 42, 75, 0.35), rgba(185, 14, 43, 0.35));
-  border-color: var(--neon-red);
-  color: #ffffff;
-  box-shadow: 0 0 15px var(--neon-red-glow);
 }
 
 .btn-danger-lock {
