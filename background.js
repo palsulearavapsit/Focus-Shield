@@ -151,17 +151,26 @@ async function getNormalizedCategories() {
 
 async function updateAllRules() {
   try {
-    const data = await chrome.storage.local.get(["blockedSites"]);
+    const data = await chrome.storage.local.get(["blockedSites", "hardcoreSites"]);
     const customSites = data.blockedSites || [];
+    const hardcoreSites = data.hardcoreSites || [];
     const categories = await getNormalizedCategories();
 
     const domainSet = new Set();
 
+    // Always-blocked custom sites
     customSites.forEach((site) => {
       const d = extractCleanDomain(site);
       if (d) domainSet.add(d);
     });
 
+    // Always-blocked hardcore sites (permanent)
+    hardcoreSites.forEach((site) => {
+      const d = extractCleanDomain(site);
+      if (d) domainSet.add(d);
+    });
+
+    // Category-toggled sites
     for (const cat of Object.values(categories)) {
       if (cat.enabled && Array.isArray(cat.sites)) {
         cat.sites.forEach((site) => {
@@ -242,49 +251,37 @@ async function recordDistractionAttempt(domain) {
   }
 }
 
-async function checkHardcoreLock() {
+async function updateHardcoreBadge() {
   try {
-    const { hardcoreLock } = await chrome.storage.local.get(["hardcoreLock"]);
-    if (hardcoreLock && hardcoreLock.active) {
-      if (hardcoreLock.isPermanent) {
-        await chrome.action.setBadgeText({ text: "LOCK" });
-        await chrome.action.setBadgeBackgroundColor({ color: "#e63946" });
-        return;
-      }
-      if (Date.now() >= hardcoreLock.expiresAt) {
-        await chrome.storage.local.set({
-          hardcoreLock: { active: false, expiresAt: 0 }
-        });
-        await chrome.action.setBadgeText({ text: "" });
-      } else {
-        const remainingMinutes = Math.max(1, Math.ceil((hardcoreLock.expiresAt - Date.now()) / (60 * 1000)));
-        await chrome.action.setBadgeText({ text: `${remainingMinutes}m` });
-        await chrome.action.setBadgeBackgroundColor({ color: "#e63946" });
-      }
+    const { hardcoreSites } = await chrome.storage.local.get(["hardcoreSites"]);
+    const count = (hardcoreSites || []).length;
+    if (count > 0) {
+      await chrome.action.setBadgeText({ text: `${count}🔒` });
+      await chrome.action.setBadgeBackgroundColor({ color: "#e63946" });
     } else {
       await chrome.action.setBadgeText({ text: "" });
     }
   } catch (err) {
-    console.error("FocusShield: Error checking hardcore lock:", err);
+    console.error("FocusShield: Error updating hardcore badge:", err);
   }
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
   const data = await chrome.storage.local.get([
     "blockedSites",
+    "hardcoreSites",
     "categories",
     "passcode",
-    "hardcoreLock",
     "stats"
   ]);
 
   const initialUpdates = {};
   if (!data.blockedSites) initialUpdates.blockedSites = [];
+  if (!data.hardcoreSites) initialUpdates.hardcoreSites = [];
   if (!data.categories) {
     initialUpdates.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
   }
   if (data.passcode === undefined) initialUpdates.passcode = null;
-  if (!data.hardcoreLock) initialUpdates.hardcoreLock = { active: false, expiresAt: 0 };
   if (!data.stats) {
     initialUpdates.stats = {
       blockedCountToday: 0,
@@ -300,24 +297,24 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 
   await updateAllRules();
-  await checkHardcoreLock();
+  await updateHardcoreBadge();
 
   chrome.alarms.create("focusShieldMonitor", { periodInMinutes: 1 });
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "focusShieldMonitor") {
-    await checkHardcoreLock();
+    await updateHardcoreBadge();
   }
 });
 
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area === "local") {
-    if (changes.blockedSites || changes.categories || changes.blockedCategories) {
+    if (changes.blockedSites || changes.hardcoreSites || changes.categories || changes.blockedCategories) {
       await updateAllRules();
     }
-    if (changes.hardcoreLock) {
-      await checkHardcoreLock();
+    if (changes.hardcoreSites) {
+      await updateHardcoreBadge();
     }
   }
 });

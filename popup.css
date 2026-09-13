@@ -980,26 +980,50 @@ input:checked + .slider:before {
   margin-bottom: 16px;
 }
 
-.permanent-lock-feature-box {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-  text-align: left;
-}
-
-.perm-feature-item {
-  font-size: 11px;
-  color: #e2e8f0;
-  line-height: 1.4;
-}
-
-.perm-feature-item b {
+.badge-hardcore-locked {
+  background: rgba(255, 42, 75, 0.18);
+  border: 1px solid rgba(255, 42, 75, 0.5);
   color: #ff8598;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 10px var(--neon-red-glow);
+}
+
+.btn-lock-site {
+  background: linear-gradient(135deg, #ff2a4b, #b90e2b);
+  border: none;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px var(--neon-red-glow);
+}
+
+.btn-lock-site:hover {
+  filter: brightness(1.2);
+  transform: translateY(-1px);
+}
+
+.btn-locked-padlock {
+  background: rgba(255, 42, 75, 0.12);
+  border: 1px solid rgba(255, 42, 75, 0.3);
+  color: #ff8598;
+  cursor: not-allowed;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
 }
 
 .btn-danger-lock {

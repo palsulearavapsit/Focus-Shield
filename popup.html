@@ -142,41 +142,27 @@
         </button>
       </section>
 
-      <!-- 3. HARDCORE LOCK TAB -->
+      <!-- 3. HARDCORE LOCK TAB (PER-SITE HARDCORE LOCK) -->
       <section id="hardcoreTab" class="tab-pane">
-        <!-- Inactive State -->
-        <div id="hardcoreInactiveView">
-          <div class="hardcore-warning-box">
-            <span class="warning-icon">💀</span>
-            <div class="warning-text">
-              <strong>PERMANENT IRREVERSIBLE LOCK</strong>
-              <p>Once activated, this mode <b>NEVER EXPIRES</b> and can <b>NEVER BE UNBLOCKED</b>. All blocked websites and category shields will be locked permanently.</p>
-            </div>
+        <div class="hardcore-warning-box">
+          <span class="warning-icon">💀</span>
+          <div class="warning-text">
+            <strong>PER-WEBSITE HARDCORE LOCK</strong>
+            <p>Select specific websites to lock permanently. Once a website is Hardcore Locked, it can <b>NEVER be unblocked</b>.</p>
           </div>
-
-          <div class="permanent-lock-feature-box">
-            <div class="perm-feature-item">🚫 <b>Zero Unblock Options</b>: Unblocking sites is strictly forbidden forever.</div>
-            <div class="perm-feature-item">🔒 <b>Permanent Categories</b>: Category shields can never be turned off.</div>
-            <div class="perm-feature-item">➕ <b>Add Sites Anytime</b>: You can still add more distracting websites to block them.</div>
-          </div>
-
-          <button id="activateHardcoreBtn" class="btn-danger-lock" style="margin-top: 14px;">
-            <span class="btn-icon">🔒</span> ENGAGE PERMANENT HARDCORE LOCK
-          </button>
         </div>
 
-        <!-- Active State -->
-        <div id="hardcoreActiveView" class="hidden">
-          <div class="hardcore-active-card">
-            <div class="skull-pulse-wrap">
-              <span class="locked-skull">💀</span>
-              <div class="lock-ring-pulse"></div>
-            </div>
-            <h3 class="lock-status-title">LOCKDOWN IN PROGRESS</h3>
-            <div id="hardcoreLiveTimer" class="live-lock-timer">00:00:00</div>
-            <p class="lock-status-desc">
-              All shields are armed in Danger Zone. Deleting sites and disabling categories is strictly prohibited.
-            </p>
+        <div class="section-title-row" style="margin-top: 10px;">
+          <span class="section-title">Blocked Websites</span>
+          <span id="hardcoreSiteCountBadge" class="count-pill">0 Locked</span>
+        </div>
+
+        <div id="hardcoreSitesListContainer" class="list-container" style="max-height: 250px;">
+          <ul id="hardcoreSitesList" class="custom-block-list"></ul>
+          <div id="emptyHardcoreSitesState" class="empty-state hidden">
+            <span class="empty-icon">🛡️</span>
+            <p>No blocked websites yet.</p>
+            <span class="empty-hint">Add websites in the Shield tab to lock them permanently.</span>
           </div>
         </div>
       </section>
@@ -320,21 +306,21 @@
       </div>
     </div>
 
-    <!-- Hardcore Confirmation Modal -->
+    <!-- Hardcore Confirmation Modal for Specific Website -->
     <div id="hardcoreConfirmModal" class="modal-overlay hidden">
       <div class="modal-card danger-modal">
         <div class="modal-header">
           <span class="modal-icon">💀</span>
-          <h3>Confirm Permanent Lock</h3>
+          <h3>Permanently Lock Website</h3>
         </div>
         <p class="modal-desc">
-          Are you 100% sure you want to activate <b style="color: #ff4f4f;">Permanent Hardcore Lock</b>?
+          Are you 100% sure you want to permanently Hardcore Lock <b id="targetHardcoreSiteDomain" style="color: var(--neon-red);">website</b>?
           <br><br>
-          <span style="color: #ff4f4f; font-weight: 700;">This lock NEVER expires and CANNOT be turned off. You will NEVER be able to unblock sites.</span>
+          <span style="color: #ff4f4f; font-weight: 700;">Once locked, you can NEVER delete or unblock this website again.</span>
         </p>
         <div class="modal-btn-row">
           <button id="cancelHardcoreModalBtn" class="btn-secondary">Cancel</button>
-          <button id="startHardcoreConfirmBtn" class="btn-danger-lock">Yes, Lock Permanently!</button>
+          <button id="startHardcoreConfirmBtn" class="btn-danger-lock">Yes, Lock Forever!</button>
         </div>
       </div>
     </div>

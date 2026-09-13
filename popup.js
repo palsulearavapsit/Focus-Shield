@@ -93,15 +93,6 @@ function extractCleanDomain(raw) {
   return clean;
 }
 
-function formatTimeRemaining(ms) {
-  if (ms <= 0) return "00:00:00";
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
   // Master Gatekeeper Elements
   const appLockScreen = document.getElementById("appLockScreen");
@@ -134,7 +125,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const assignTargetSiteDomain = document.getElementById("assignTargetSiteDomain");
   const assignCategoryButtonsGrid = document.getElementById("assignCategoryButtonsGrid");
   const cancelAssignCategoryBtn = document.getElementById("cancelAssignCategoryBtn");
-  let targetSiteForAssignment = "";
 
   // Categories Tab
   const categoriesContainer = document.getElementById("categoriesContainer");
@@ -146,14 +136,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const cancelNewCategoryBtn = document.getElementById("cancelNewCategoryBtn");
   const saveNewCategoryBtn = document.getElementById("saveNewCategoryBtn");
 
-  // Hardcore Lock Tab
-  const hardcoreInactiveView = document.getElementById("hardcoreInactiveView");
-  const hardcoreActiveView = document.getElementById("hardcoreActiveView");
-  const activateHardcoreBtn = document.getElementById("activateHardcoreBtn");
-  const hardcoreLiveTimer = document.getElementById("hardcoreLiveTimer");
-  const durationPills = document.querySelectorAll(".duration-pill");
+  // Hardcore Lock Tab (Per-site permanent lock)
+  const hardcoreSitesList = document.getElementById("hardcoreSitesList");
+  const hardcoreSiteCountBadge = document.getElementById("hardcoreSiteCountBadge");
+  const emptyHardcoreSitesState = document.getElementById("emptyHardcoreSitesState");
   const hardcoreConfirmModal = document.getElementById("hardcoreConfirmModal");
-  const confirmDurationText = document.getElementById("confirmDurationText");
+  const targetHardcoreSiteDomain = document.getElementById("targetHardcoreSiteDomain");
   const cancelHardcoreModalBtn = document.getElementById("cancelHardcoreModalBtn");
   const startHardcoreConfirmBtn = document.getElementById("startHardcoreConfirmBtn");
 
@@ -184,17 +172,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Application State
   let state = {
     blockedSites: [],
+    hardcoreSites: [],
     categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
     passcode: null,
-    hardcoreLock: { active: false, expiresAt: 0 },
     stats: { blockedCountToday: 0, totalBlockedCount: 0, streak: 1, topBlocked: {} }
   };
   let currentTabDomain = "";
-  let selectedDurationKey = "30m";
-  let lockTimerInterval = null;
   let pendingPinCallback = null;
   let selectedNewCategoryEmoji = "🍿";
   let expandedCategoryIds = new Set();
+  let siteToHardcoreLock = "";
 
   // ========================================================
   // MASTER PIN GATEKEEPER LOCK CHECK
@@ -247,14 +234,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function loadState() {
     const data = await chrome.storage.local.get([
       "blockedSites",
+      "hardcoreSites",
       "categories",
       "blockedCategories",
       "passcode",
-      "hardcoreLock",
       "stats"
     ]);
 
-    state.blockedSites = data.blockedSites || [];
+    state.blockedSites = Array.isArray(data.blockedSites) ? data.blockedSites : [];
+    state.hardcoreSites = Array.isArray(data.hardcoreSites) ? data.hardcoreSites : [];
 
     if (data.categories && typeof data.categories === "object") {
       state.categories = data.categories;
@@ -299,7 +287,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     state.passcode = data.passcode || null;
-    state.hardcoreLock = data.hardcoreLock || { active: false, expiresAt: 0 };
     state.stats = data.stats || {
       blockedCountToday: 0,
       totalBlockedCount: 0,
@@ -317,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderCurrentTabCard();
     renderCustomBlocklist();
     renderCategories();
-    renderHardcoreLock();
+    renderHardcoreTab();
     renderAnalytics();
     renderSecurity();
   }
@@ -325,6 +312,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderStreakAndHeader() {
     const streak = state.stats.streak || 1;
     streakCountText.textContent = `${streak}d`;
+
+    if (state.hardcoreSites && state.hardcoreSites.length > 0) {
+      hardcoreActiveBanner.classList.remove("hidden");
+      const count = state.hardcoreSites.length;
+      hardcoreCountdownBanner.textContent = `${count} Website${count > 1 ? "s" : ""} Locked Forever`;
+    } else {
+      hardcoreActiveBanner.classList.add("hidden");
+    }
   }
 
   // Detect Current Active Tab
@@ -368,6 +363,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!domain) return false;
     const clean = extractCleanDomain(domain);
     if (state.blockedSites.includes(clean)) return true;
+    if (state.hardcoreSites.includes(clean)) return true;
 
     for (const cat of Object.values(state.categories)) {
       if (cat.enabled && Array.isArray(cat.sites)) {
@@ -409,6 +405,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       emptyBlocklistState.classList.add("hidden");
       state.blockedSites.forEach((site, index) => {
+        const isHardcoreLocked = state.hardcoreSites.includes(site);
         const li = document.createElement("li");
 
         const domainWrap = document.createElement("div");
@@ -418,6 +415,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         domainSpan.className = "site-domain-text";
         domainSpan.textContent = site;
         domainWrap.appendChild(domainSpan);
+
+        if (isHardcoreLocked) {
+          const lockBadge = document.createElement("span");
+          lockBadge.className = "badge-hardcore-locked";
+          lockBadge.style.cssText = "font-size: 9px; padding: 2px 6px; margin-left: 6px;";
+          lockBadge.innerHTML = "🔒 Locked";
+          lockBadge.title = "Permanent Hardcore Locked: Cannot be unblocked";
+          domainWrap.appendChild(lockBadge);
+        }
 
         const actionsWrap = document.createElement("div");
         actionsWrap.className = "site-actions-wrap";
@@ -439,16 +445,25 @@ document.addEventListener("DOMContentLoaded", async () => {
           openAssignCategoryModal(site);
         });
 
-        // Delete Button
+        // Delete Button / Locked Padlock
         const deleteBtn = document.createElement("button");
-        deleteBtn.className = "btn-delete-site";
-        deleteBtn.innerHTML = "🗑️";
-        deleteBtn.title = "Unblock Site";
-
-        deleteBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          handleDeleteSite(index);
-        });
+        if (isHardcoreLocked) {
+          deleteBtn.className = "btn-delete-site btn-locked-padlock";
+          deleteBtn.innerHTML = "🔒";
+          deleteBtn.title = "Hardcore Locked: This website can NEVER be unblocked.";
+          deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            alert(`🚫 IRREVERSIBLE LOCK!\n\n"${site}" is permanently Hardcore Locked and can NEVER be unblocked.`);
+          });
+        } else {
+          deleteBtn.className = "btn-delete-site";
+          deleteBtn.innerHTML = "🗑️";
+          deleteBtn.title = "Unblock Site";
+          deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            handleDeleteSite(index);
+          });
+        }
 
         actionsWrap.appendChild(catBtn);
         actionsWrap.appendChild(deleteBtn);
@@ -470,7 +485,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 1-CLICK ASSIGN CATEGORY MODAL LOGIC
   // ========================================================
   function openAssignCategoryModal(site) {
-    targetSiteForAssignment = site;
     assignTargetSiteDomain.textContent = site;
     assignCategoryButtonsGrid.innerHTML = "";
 
@@ -609,7 +623,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       // Switch change handler
-      switchInput.addEventListener("change", (e) => {
+      switchInput.addEventListener("change", () => {
         const willEnable = switchInput.checked;
 
         if (willEnable) {
@@ -617,12 +631,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           chrome.storage.local.set({ categories: state.categories });
           renderCurrentTabCard();
         } else {
-          if (state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt)) {
-            switchInput.checked = true;
-            alert("🚫 IRREVERSIBLE HARDCORE LOCK IS ACTIVE!\nCategory shields can NEVER be turned off during this lock.");
-            return;
-          }
-
           switchInput.checked = true; // revert until authenticated
           requestPinAuth(() => {
             state.categories[catKey].enabled = false;
@@ -644,14 +652,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         chipsContainer.innerHTML = `<span class="empty-chips-hint">No websites in this category yet. Add one below!</span>`;
       } else {
         sites.forEach((site, sIndex) => {
+          const isHardcore = state.hardcoreSites.includes(site);
           const chip = document.createElement("span");
           chip.className = "site-chip";
           chip.textContent = site;
 
           const removeChipBtn = document.createElement("button");
           removeChipBtn.className = "btn-remove-chip";
-          removeChipBtn.innerHTML = "&times;";
-          removeChipBtn.title = `Remove ${site}`;
+          removeChipBtn.innerHTML = isHardcore ? "🔒" : "&times;";
+          removeChipBtn.title = isHardcore ? "Hardcore Locked: Cannot remove" : `Remove ${site}`;
 
           removeChipBtn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -695,6 +704,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await chrome.storage.local.set({ categories: state.categories });
         renderCategories();
         renderCustomBlocklist();
+        renderHardcoreTab();
         renderCurrentTabCard();
       };
 
@@ -717,8 +727,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function handleRemoveSiteFromCategory(catKey, siteIndex) {
-    if (state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt)) {
-      alert("🚫 IRREVERSIBLE HARDCORE LOCK IS ACTIVE!\nYou can NEVER remove websites from categories during this lock.");
+    const site = state.categories[catKey]?.sites?.[siteIndex];
+    if (!site) return;
+
+    if (state.hardcoreSites.includes(site)) {
+      alert(`🚫 IRREVERSIBLE LOCK!\n\n"${site}" is permanently Hardcore Locked and can NEVER be removed.`);
       return;
     }
 
@@ -728,6 +741,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await chrome.storage.local.set({ categories: state.categories });
         renderCategories();
         renderCustomBlocklist();
+        renderHardcoreTab();
         renderCurrentTabCard();
       }
     });
@@ -781,58 +795,101 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderCategories();
   });
 
-  // Render Hardcore Lock
-  function renderHardcoreLock() {
-    const isLockActive = state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt);
+  // ========================================================
+  // RENDER HARDCORE LOCK TAB (PER-WEBSITE HARDCORE LOCK)
+  // ========================================================
+  function renderHardcoreTab() {
+    hardcoreSitesList.innerHTML = "";
 
-    if (isLockActive) {
-      hardcoreActiveBanner.classList.remove("hidden");
-      hardcoreInactiveView.classList.add("hidden");
-      hardcoreActiveView.classList.remove("hidden");
-
-      if (state.hardcoreLock.isPermanent) {
-        hardcoreCountdownBanner.textContent = "PERMANENT (NEVER UNBLOCKS)";
-        hardcoreLiveTimer.textContent = "♾️ PERMANENT";
-      } else {
-        startLiveCountdown();
+    // Collect all candidate domains from blockedSites, categories, and hardcoreSites
+    const candidateSet = new Set();
+    state.blockedSites.forEach((s) => candidateSet.add(s));
+    Object.values(state.categories).forEach((cat) => {
+      if (Array.isArray(cat.sites)) {
+        cat.sites.forEach((s) => candidateSet.add(s));
       }
+    });
+    state.hardcoreSites.forEach((s) => candidateSet.add(s));
+
+    const allSites = Array.from(candidateSet);
+    const lockedCount = state.hardcoreSites.length;
+    hardcoreSiteCountBadge.textContent = `${lockedCount} Locked`;
+
+    if (allSites.length === 0) {
+      emptyHardcoreSitesState.classList.remove("hidden");
     } else {
-      hardcoreActiveBanner.classList.add("hidden");
-      hardcoreInactiveView.classList.remove("hidden");
-      hardcoreActiveView.classList.add("hidden");
+      emptyHardcoreSitesState.classList.add("hidden");
 
-      if (lockTimerInterval) {
-        clearInterval(lockTimerInterval);
-        lockTimerInterval = null;
-      }
+      allSites.forEach((site) => {
+        const isLocked = state.hardcoreSites.includes(site);
+        const li = document.createElement("li");
+
+        const domainWrap = document.createElement("div");
+        domainWrap.className = "site-domain-wrap";
+
+        const domainSpan = document.createElement("span");
+        domainSpan.className = "site-domain-text";
+        domainSpan.textContent = site;
+        domainWrap.appendChild(domainSpan);
+
+        const actionWrap = document.createElement("div");
+        actionWrap.className = "site-actions-wrap";
+
+        if (isLocked) {
+          const badge = document.createElement("span");
+          badge.className = "badge-hardcore-locked";
+          badge.innerHTML = "🔒 Hardcore Locked";
+          badge.title = "This website is locked permanently and can never be unblocked.";
+          actionWrap.appendChild(badge);
+        } else {
+          const lockBtn = document.createElement("button");
+          lockBtn.className = "btn-lock-site";
+          lockBtn.innerHTML = "⚡ Lock Forever";
+          lockBtn.title = `Permanently lock ${site} (Irreversible)`;
+
+          lockBtn.addEventListener("click", () => {
+            siteToHardcoreLock = site;
+            targetHardcoreSiteDomain.textContent = site;
+            hardcoreConfirmModal.classList.remove("hidden");
+          });
+
+          actionWrap.appendChild(lockBtn);
+        }
+
+        li.appendChild(domainWrap);
+        li.appendChild(actionWrap);
+        hardcoreSitesList.appendChild(li);
+      });
     }
   }
 
-  function startLiveCountdown() {
-    if (lockTimerInterval) clearInterval(lockTimerInterval);
+  // Hardcore Modal Actions
+  cancelHardcoreModalBtn.addEventListener("click", () => {
+    hardcoreConfirmModal.classList.add("hidden");
+    siteToHardcoreLock = "";
+  });
 
-    function tick() {
-      if (state.hardcoreLock.isPermanent) {
-        hardcoreCountdownBanner.textContent = "PERMANENT (NEVER UNBLOCKS)";
-        hardcoreLiveTimer.textContent = "♾️ PERMANENT";
-        return;
-      }
-      const remaining = state.hardcoreLock.expiresAt - Date.now();
-      if (remaining <= 0) {
-        clearInterval(lockTimerInterval);
-        state.hardcoreLock = { active: false, expiresAt: 0 };
-        chrome.storage.local.set({ hardcoreLock: state.hardcoreLock });
-        renderHardcoreLock();
-      } else {
-        const formatted = formatTimeRemaining(remaining);
-        hardcoreCountdownBanner.textContent = `${formatted} remaining`;
-        hardcoreLiveTimer.textContent = formatted;
-      }
+  startHardcoreConfirmBtn.addEventListener("click", async () => {
+    if (!siteToHardcoreLock) return;
+
+    const domainToLock = siteToHardcoreLock;
+    if (!state.hardcoreSites.includes(domainToLock)) {
+      state.hardcoreSites.push(domainToLock);
+    }
+    if (!state.blockedSites.includes(domainToLock)) {
+      state.blockedSites.push(domainToLock);
     }
 
-    tick();
-    lockTimerInterval = setInterval(tick, 1000);
-  }
+    await chrome.storage.local.set({
+      hardcoreSites: state.hardcoreSites,
+      blockedSites: state.blockedSites
+    });
+
+    hardcoreConfirmModal.classList.add("hidden");
+    siteToHardcoreLock = "";
+
+    renderAll();
+  });
 
   // Render Analytics
   function renderAnalytics() {
@@ -924,6 +981,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await chrome.storage.local.set({ blockedSites: state.blockedSites });
       renderCurrentTabCard();
       renderCustomBlocklist();
+      renderHardcoreTab();
     }
   });
 
@@ -954,6 +1012,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await chrome.storage.local.set({ blockedSites: state.blockedSites });
     urlInput.value = "";
     renderCustomBlocklist();
+    renderHardcoreTab();
     renderCurrentTabCard();
   });
 
@@ -962,8 +1021,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   function handleDeleteSite(index) {
-    if (state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt)) {
-      alert("🚫 IRREVERSIBLE HARDCORE LOCK ACTIVE!\nYou can NEVER unblock websites while Hardcore Lock is engaged.");
+    const site = state.blockedSites[index];
+    if (!site) return;
+
+    if (state.hardcoreSites.includes(site)) {
+      alert(`🚫 IRREVERSIBLE LOCK!\n\n"${site}" is permanently Hardcore Locked and can NEVER be unblocked.`);
       return;
     }
 
@@ -971,30 +1033,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       state.blockedSites.splice(index, 1);
       await chrome.storage.local.set({ blockedSites: state.blockedSites });
       renderCustomBlocklist();
+      renderHardcoreTab();
       renderCurrentTabCard();
     });
   }
-
-  // Hardcore Permanent Lock Activation
-  activateHardcoreBtn.addEventListener("click", () => {
-    hardcoreConfirmModal.classList.remove("hidden");
-  });
-
-  cancelHardcoreModalBtn.addEventListener("click", () => {
-    hardcoreConfirmModal.classList.add("hidden");
-  });
-
-  startHardcoreConfirmBtn.addEventListener("click", async () => {
-    hardcoreConfirmModal.classList.add("hidden");
-    state.hardcoreLock = {
-      active: true,
-      isPermanent: true,
-      expiresAt: Date.now() + (100 * 365 * 24 * 60 * 60 * 1000)
-    };
-
-    await chrome.storage.local.set({ hardcoreLock: state.hardcoreLock });
-    renderHardcoreLock();
-  });
 
   // PIN Management
   savePinBtn.addEventListener("click", async () => {

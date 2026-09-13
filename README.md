@@ -1,6 +1,6 @@
-# 🛡️ FocusShield — Website Blocker & Danger Zone (v2.2)
+# 🛡️ FocusShield — Website Blocker & Danger Zone (v3.0)
 
-> **Block distracting websites, enter deep focus, and conquer procrastination with un-bypassable Hardcore Locks, PIN Security, and dynamic Danger Zone splash alerts.**
+> **Block distracting websites, permanently Hardcore Lock specific sites, and conquer procrastination with irreversible per-website locks, PIN Security, and dynamic Danger Zone splash alerts.**
 
 ![FocusShield Banner](icons/icon128.png)
 
@@ -12,11 +12,12 @@
 * **Startup Lock Screen**: Require a 4-digit PIN every time FocusShield is opened.
 * **Tamper-Resistant**: Unblocking websites or disabling category shields requires entering the master PIN.
 
-### 2. ⚡ Permanent Irreversible Hardcore Lock
-* **Permanent Lockout (Never Unblocks)**: Once engaged, this lock **never expires** and can **never be cancelled, overridden, or turned off**.
-* **Zero Unblock Allowed**: Deleting blocked websites and turning off category shields is permanently forbidden.
-* You can still add *more* distracting websites to lock yourself down even further.
-* Displays a permanent status badge in the popup and a red `LOCK` indicator on the Chrome toolbar.
+### 2. ⚡ Per-Website Permanent Hardcore Lock
+* Go to the **Hardcore** tab to see all your blocked websites.
+* Click **"⚡ Lock Forever"** on any specific site to permanently Hardcore Lock it.
+* Once a website is Hardcore Locked, it shows a **🔒 Hardcore Locked** badge — it can **NEVER be unblocked, deleted, or removed** from the blocklist. This is **irreversible**.
+* You can still add *more* websites or Hardcore Lock more sites at any time.
+* The toolbar badge shows how many sites are permanently locked (e.g. `2🔒`).
 
 ### 3. 🏷️ Dynamic & Editable Categories
 * Pre-configured with major bundles:
@@ -25,7 +26,7 @@
   * 🎮 **Games**: `discord.com`, `roblox.com`, `steampowered.com`, `epicgames.com`, `twitch.tv`
   * 📱 **Social Media**: `instagram.com`, `facebook.com`, `x.com`, `reddit.com`, `tiktok.com`
   * 🎬 **Streaming & Video**: `youtube.com`, `netflix.com`, `primevideo.com`, `disneyplus.com`
-* **Custom Categories**: Create brand new categories with custom names and emoji icons (🛍️, 📰, 📚, 🎵, 🛒, 🪙, 💻, ⚡).
+* **Custom Categories**: Create brand new categories with custom names and emoji icons (🛍️, 📰, 📚, 🎵, 🛒, ⚡).
 * **Inline Website Management**: Expand any category card to view website chips, add new websites, or remove existing ones.
 
 ### 4. 🔗 1-Click / Double-Click Website Category Assignment
@@ -63,7 +64,7 @@ Focus-Shield/
 ├── background.js       # Background service worker & DNR dynamic rule sync
 ├── popup.html          # Extension popup UI with tabs and modals
 ├── popup.css           # Glassmorphic dark styling & micro-animations
-├── popup.js            # Controller for lock screens, categories, and blocklists
+├── popup.js            # Controller for lock screens, categories, and per-site hardcore locks
 ├── blocked.html        # Danger Zone custom block landing page
 ├── blocked.css         # Cyberpunk hazard styling & breathing ring
 ├── blocked.js          # Distraction logger, quotes, and breathing logic
