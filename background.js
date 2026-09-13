@@ -246,6 +246,11 @@ async function checkHardcoreLock() {
   try {
     const { hardcoreLock } = await chrome.storage.local.get(["hardcoreLock"]);
     if (hardcoreLock && hardcoreLock.active) {
+      if (hardcoreLock.isPermanent) {
+        await chrome.action.setBadgeText({ text: "LOCK" });
+        await chrome.action.setBadgeBackgroundColor({ color: "#e63946" });
+        return;
+      }
       if (Date.now() >= hardcoreLock.expiresAt) {
         await chrome.storage.local.set({
           hardcoreLock: { active: false, expiresAt: 0 }

@@ -13,9 +13,9 @@
 * **Tamper-Resistant**: Unblocking websites or disabling category shields requires entering the master PIN.
 
 ### 2. ⚡ Irreversible Hardcore Lock Mode
-* Choose a duration: **30 Mins, 1 Hour, 2 Hours, 4 Hours, Until Midnight, or Until 8 AM Tomorrow**.
-* **Strict Lockout**: Once engaged, unblocking websites and turning off categories is **strictly locked and cannot be bypassed or cancelled** until the timer expires.
-* Live countdown displays in the popup, header banner, and Chrome toolbar badge.
+* Choose a duration: **30 Mins, 1 Hour, 2 Hours, 4 Hours, Until Midnight, Until 8 AM Tomorrow, or ♾️ FOREVER (Permanent - Never Unblocks)**.
+* **Strict Lockout (Never Unblock)**: Once engaged, unblocking websites and turning off categories is **strictly locked and cannot be bypassed, overridden, or cancelled**.
+* Displays a live countdown (or permanent lock status) in the popup, header banner, and Chrome toolbar badge.
 
 ### 3. 🏷️ Dynamic & Editable Categories
 * Pre-configured with major bundles:

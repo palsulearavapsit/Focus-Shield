@@ -617,9 +617,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           chrome.storage.local.set({ categories: state.categories });
           renderCurrentTabCard();
         } else {
-          if (state.hardcoreLock.active && Date.now() < state.hardcoreLock.expiresAt) {
+          if (state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt)) {
             switchInput.checked = true;
-            alert("⚠️ Hardcore Lock is active! Category shields cannot be disabled until the timer ends.");
+            alert("🚫 IRREVERSIBLE HARDCORE LOCK IS ACTIVE!\nCategory shields can NEVER be turned off during this lock.");
             return;
           }
 
@@ -717,8 +717,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function handleRemoveSiteFromCategory(catKey, siteIndex) {
-    if (state.hardcoreLock.active && Date.now() < state.hardcoreLock.expiresAt) {
-      alert("⚠️ Hardcore Lock is active! You cannot remove websites from categories.");
+    if (state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt)) {
+      alert("🚫 IRREVERSIBLE HARDCORE LOCK IS ACTIVE!\nYou can NEVER remove websites from categories during this lock.");
       return;
     }
 
@@ -783,14 +783,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Render Hardcore Lock
   function renderHardcoreLock() {
-    const isLockActive = state.hardcoreLock.active && Date.now() < state.hardcoreLock.expiresAt;
+    const isLockActive = state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt);
 
     if (isLockActive) {
       hardcoreActiveBanner.classList.remove("hidden");
       hardcoreInactiveView.classList.add("hidden");
       hardcoreActiveView.classList.remove("hidden");
 
-      startLiveCountdown();
+      if (state.hardcoreLock.isPermanent) {
+        hardcoreCountdownBanner.textContent = "PERMANENT (NEVER UNBLOCKS)";
+        hardcoreLiveTimer.textContent = "♾️ PERMANENT";
+      } else {
+        startLiveCountdown();
+      }
     } else {
       hardcoreActiveBanner.classList.add("hidden");
       hardcoreInactiveView.classList.remove("hidden");
@@ -807,6 +812,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (lockTimerInterval) clearInterval(lockTimerInterval);
 
     function tick() {
+      if (state.hardcoreLock.isPermanent) {
+        hardcoreCountdownBanner.textContent = "PERMANENT (NEVER UNBLOCKS)";
+        hardcoreLiveTimer.textContent = "♾️ PERMANENT";
+        return;
+      }
       const remaining = state.hardcoreLock.expiresAt - Date.now();
       if (remaining <= 0) {
         clearInterval(lockTimerInterval);
@@ -952,8 +962,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   function handleDeleteSite(index) {
-    if (state.hardcoreLock.active && Date.now() < state.hardcoreLock.expiresAt) {
-      alert("⚠️ Hardcore Lock is active! You cannot remove blocked websites until the lock expires.");
+    if (state.hardcoreLock.active && (state.hardcoreLock.isPermanent || Date.now() < state.hardcoreLock.expiresAt)) {
+      alert("🚫 IRREVERSIBLE HARDCORE LOCK ACTIVE!\nYou can NEVER unblock websites while Hardcore Lock is engaged.");
       return;
     }
 
@@ -998,6 +1008,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         morning.setHours(8, 0, 0, 0);
         return Math.max(60000, morning.getTime() - now.getTime());
       }
+      case "permanent":
+        return 100 * 365 * 24 * 60 * 60 * 1000; // 100 years
       default:
         return 30 * 60 * 1000;
     }
@@ -1011,6 +1023,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       case "4h": return "4 hours";
       case "midnight": return "until Midnight tonight";
       case "morning": return "until 8:00 AM tomorrow";
+      case "permanent": return "FOREVER (Permanent - Never Unblocks)";
       default: return key;
     }
   }
@@ -1026,11 +1039,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   startHardcoreConfirmBtn.addEventListener("click", async () => {
     hardcoreConfirmModal.classList.add("hidden");
+    const isPerm = selectedDurationKey === "permanent";
     const durationMs = getDurationMs(selectedDurationKey);
     const expiresAt = Date.now() + durationMs;
 
     state.hardcoreLock = {
       active: true,
+      isPermanent: isPerm,
       expiresAt: expiresAt
     };
 
